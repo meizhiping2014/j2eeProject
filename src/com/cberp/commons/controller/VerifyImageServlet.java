@@ -45,7 +45,6 @@ public class VerifyImageServlet extends HttpServlet {
 		writeImage(verifyImage, response.getOutputStream(), request.getLocale());
 
 	}
-
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		doGet(request, response);
