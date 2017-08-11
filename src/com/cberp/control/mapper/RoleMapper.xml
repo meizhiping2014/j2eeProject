@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cberp.control.mapper.RoleMapper">
+
+
+	<select id="findById" resultType="com.cberp.control.entity.Role">
+		 select * from t_dcs_role where id = #{0}
+	</select>
+	
+	<select id="findByName" resultType="com.cberp.control.entity.Role">
+		 select * from t_dcs_role where name = #{0}
+	</select>
+	
+	<select id="listCountByPage" parameterType="java.util.Map" resultType="java.lang.Long">
+		select count(id) from t_dcs_role 
+		<if test="null != searchVal and '' != searchVal">
+			where concat(name,',',ifnull(description,''),',',DATE_FORMAT(created_date, '%Y-%m-%d'),',',creator) like concat('%',#{searchVal},'%')
+		</if>
+	</select>
+	
+	<select id="listByPage" parameterType="java.util.Map" resultType="java.util.LinkedHashMap">
+		select id,name,description,DATE_FORMAT(created_date, '%Y-%m-%d') as created_date,creator from t_dcs_role
+		<if test="null != searchVal and '' != searchVal">
+			where concat(name,',',ifnull(description,''),',',DATE_FORMAT(created_date, '%Y-%m-%d'),',',creator) like concat('%',#{searchVal},'%')
+		</if>
+		limit #{start},#{length}
+	</select>
+	
+	<select id="allRole" resultType="com.cberp.control.entity.Role">
+		select * from t_dcs_role
+	</select>
+	
+	<select id="findRoleByUserId" resultType="com.cberp.control.entity.Role">
+		select * from t_dcs_role r where r.id in 
+		(select rur.role_id from t_dcs_role_user_relation rur where rur.user_id = #{_parameter} and rur.authorize_type = 0)
+	</select>
+	
+	<insert id="add">
+		<selectKey resultType="java.lang.String" order="BEFORE" keyProperty="id">
+			select (replace(uuid(),'-','')) from dual
+		</selectKey>
+		INSERT INTO t_dcs_role
+		(id, created_date, creator, description, name, order_num, parent_id)
+		VALUES(#{id}, #{created_date}, #{creator}, #{description}, #{name}, #{order_num}, #{parent_id})
+	</insert>
+	
+	<update id="edit" parameterType="com.cberp.control.entity.Role">
+		UPDATE t_dcs_role
+		SET description=#{description}, name=#{name}
+		WHERE id=#{id}
+	</update>
+	
+	<delete id="deleteById">
+		delete from t_dcs_role where id = #{0}
+	</delete>
+	
+	
+</mapper>

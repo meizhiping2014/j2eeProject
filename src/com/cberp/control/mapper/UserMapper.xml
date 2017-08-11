@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cberp.control.mapper.UserMapper">
+	
+	<select id="checkUser" resultType="com.cberp.control.entity.User">
+		select * from t_dcs_user where account = #{0} and `password` = #{1}
+	</select>
+	
+	<select id="findUserByAccount" resultType="com.cberp.control.entity.User">
+		select * from t_dcs_user where account = #{0}
+	</select>
+	
+	<select id="findByName" resultType="com.cberp.control.entity.User">
+		select * from t_dcs_user where name = #{0}
+	</select>
+	
+	<sql id="ref_update">
+		<if test="null != account and '' != account">
+			account=#{account},
+		</if>
+		<if test="null != age and '' != age">
+			age=#{age},
+		</if>
+		<if test="null != email and '' != email">
+			email=#{email},
+		</if>
+		<if test="null != mobil_phone and '' != mobil_phone">
+			mobil_phone=#{mobil_phone},
+		</if>
+		<if test="null != name and '' != name">
+			name=#{name},
+		</if>
+		<if test="null != office_phone and '' != office_phone">
+			office_phone=#{office_phone},
+		</if>
+		<if test="null != password and '' != password">
+			password=#{password},
+		</if>
+		<if test="null != sex and '' != sex">
+			sex=#{sex},
+		</if>
+		<if test="null != organization_id and '' != organization_id">
+			organization_id=#{organization_id},
+		</if>
+	</sql>
+	
+	<select id="listCountByPage" parameterType="java.util.Map" resultType="java.lang.Long">
+		select count(id) from t_dcs_user 
+		<if test="null != searchVal and '' != searchVal">
+			where concat(account,',',name,',',mobil_phone) like concat('%',#{searchVal},'%')
+		</if>
+	</select>
+	
+	<select id="listByPage" parameterType="java.util.Map" resultType="java.util.LinkedHashMap">
+		select u.*,o.name as orgname from t_dcs_user u,
+		t_dcs_organization o where u.organization_id = o.id 
+		<if test="null != searchVal and '' != searchVal">
+			and concat(u.account,',',u.name,',',u.mobil_phone,',',o.name) like concat('%',#{searchVal},'%')
+		</if>
+		limit #{start},#{length}
+	</select>
+	
+	<select id="findByOrgId" resultType="com.cberp.control.entity.User">
+		select * from t_dcs_user where organization_id = #{_parameter}
+	</select>
+	
+	<select id="findById" resultType="com.cberp.control.entity.User">
+		select * from t_dcs_user where id = #{_parameter}
+	</select>
+	
+	<insert id="addUser" parameterType="com.cberp.control.entity.User">
+		INSERT INTO t_dcs_user
+		VALUES(replace(uuid(),'-',''),#{account}, #{age}, #{created_date}, #{creator}, #{email}, #{mobil_phone}, #{name}, #{office_phone}, #{password}, #{position},#{sex}, #{visible}, #{organization_id})
+	</insert>
+
+	<delete id="delById">
+		delete from t_dcs_user where
+		id = #{0} and account != 'admin'
+	</delete>
+	
+	<update id="editUser" parameterType="com.cberp.control.entity.User">
+		UPDATE t_dcs_user
+		<set>
+			<include refid="ref_update" />
+		</set>
+		WHERE id=#{id}
+	</update>
+	
+	<update id="disableUser">
+		UPDATE t_dcs_user
+		set visible = 0
+		where id = #{0}
+	</update>
+	
+	<update id="enableUser">
+		UPDATE t_dcs_user
+		set visible = 1
+		where id = #{0}
+	</update>
+	
+	
+</mapper>

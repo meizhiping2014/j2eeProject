@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cberp.control.mapper.ResourceMapper">
+
+	<select id="findResourceBy" resultType="com.cberp.control.entity.Resource">
+		select * from t_dcs_resource resource
+		where  resource.parent_id= #{1}
+		and  resource.resource_type = #{2}
+		and  (
+		exists(select id from t_dcs_role_resource_relation roleResource   
+		where resource.id = roleResource.resource_id and 
+		(roleResource.authorize_type = 0 or 
+		(roleResource.authorize_type = 1 
+		and exists(select id from t_dcs_role_resource_temp roleResourceTemp 
+		where roleResourceTemp.id=roleResource.role_resource_temp_id 
+		and roleResourceTemp.state=1)) ) 
+		and ( exists(select id from t_dcs_role_user_relation roleUser  
+		where roleUser.role_id = roleResource.role_id 
+		and (roleUser.authorize_type = 0 or 
+		(roleUser.authorize_type = 1 and exists(select id from t_dcs_role_user_temp roleUserTemp 
+		where roleUserTemp.id=roleUser.role_user_temp_id and roleUserTemp.state=1))) and roleUser.user_id = #{0}) 
+		or exists(select id from t_dcs_user_resource_relation userResourceRelation  where resource.id = userResourceRelation.resource_id 
+		and (userResourceRelation.authorize_type = 0  or 
+		(userResourceRelation.authorize_type = 1 and exists(select id from t_dcs_user_resource_temp userResourceTemp 
+		where userResourceTemp.id = userResourceRelation.user_resource_temp_id and userResourceTemp.state = 1))   	    ) 
+		and userResourceRelation.user_id = #{0})))
+		) order by created_date
+	</select>
+	
+	<select id="findResourceCountBy" resultType="java.lang.Long">
+		select count(resource.id) from t_dcs_resource resource
+		where  resource.parent_id= #{1}
+		and  resource.resource_type = #{2}
+		and  (
+		exists(select id from t_dcs_role_resource_relation roleResource   
+		where resource.id = roleResource.resource_id and 
+		(roleResource.authorize_type = 0 or 
+		(roleResource.authorize_type = 1 
+		and exists(select id from t_dcs_role_resource_temp roleResourceTemp 
+		where roleResourceTemp.id=roleResource.role_resource_temp_id 
+		and roleResourceTemp.state=1)) ) 
+		and ( exists(select id from t_dcs_role_user_relation roleUser  
+		where roleUser.role_id = roleResource.role_id 
+		and (roleUser.authorize_type = 0 or 
+		(roleUser.authorize_type = 1 and exists(select id from t_dcs_role_user_temp roleUserTemp 
+		where roleUserTemp.id=roleUser.role_user_temp_id and roleUserTemp.state=1))) and roleUser.user_id = #{0}) 
+		or exists(select id from t_dcs_user_resource_relation userResourceRelation  where resource.id = userResourceRelation.resource_id 
+		and (userResourceRelation.authorize_type = 0  or 
+		(userResourceRelation.authorize_type = 1 and exists(select id from t_dcs_user_resource_temp userResourceTemp 
+		where userResourceTemp.id = userResourceRelation.user_resource_temp_id and userResourceTemp.state = 1))   	    ) 
+		and userResourceRelation.user_id = #{0}))))
+	</select>
+	
+	<select id="findResourceByUserId" resultType="com.cberp.control.entity.Resource">
+		select * from t_dcs_resource resource
+		where  (
+		exists(select id from t_dcs_role_resource_relation roleResource   
+		where resource.id = roleResource.resource_id and 
+		(roleResource.authorize_type = 0 or 
+		(roleResource.authorize_type = 1 
+		and exists(select id from t_dcs_role_resource_temp roleResourceTemp 
+		where roleResourceTemp.id=roleResource.role_resource_temp_id 
+		and roleResourceTemp.state=1)) ) 
+		and ( exists(select id from t_dcs_role_user_relation roleUser  
+		where roleUser.role_id = roleResource.role_id 
+		and (roleUser.authorize_type = 0 or 
+		(roleUser.authorize_type = 1 and exists(select id from t_dcs_role_user_temp roleUserTemp 
+		where roleUserTemp.id=roleUser.role_user_temp_id and roleUserTemp.state=1))) and roleUser.user_id = #{0}) 
+		or exists(select id from t_dcs_user_resource_relation userResourceRelation  where resource.id = userResourceRelation.resource_id 
+		and (userResourceRelation.authorize_type = 0  or 
+		(userResourceRelation.authorize_type = 1 and exists(select id from t_dcs_user_resource_temp userResourceTemp 
+		where userResourceTemp.id = userResourceRelation.user_resource_temp_id and userResourceTemp.state = 1))   	    ) 
+		and userResourceRelation.user_id = #{0})))
+		) order by created_date
+	</select>
+	
+	<select id="resourceCount" resultType="java.lang.Long">
+		select count(id) from t_dcs_resource
+	</select>
+	
+	<select id="findAll" resultType="com.cberp.control.entity.Resource">
+		select * from t_dcs_resource
+	</select>
+	
+	<select id="findTopParent" resultType="com.cberp.control.entity.Resource">
+		select * from t_dcs_resource where parent_id is null
+	</select>
+
+	<select id="findByParentId" resultType="com.cberp.control.entity.Resource">
+		select * from t_dcs_resource where parent_id = #{0}
+	</select>
+	
+	<select id="countByParentId" resultType="java.lang.Long">
+		select count(id) from t_dcs_resource 
+		where parent_id = #{0}
+	</select>
+	
+	<select id="findSelfAndAllChild" resultType="com.cberp.control.entity.Resource">
+		select * from t_dcs_resource
+		where FIND_IN_SET(id,getChildList('t_dcs_resource',#{0})) order by created_date desc
+	</select>
+	
+	<select id="findAllChild" resultType="com.cberp.control.entity.Resource">
+		select * from t_dcs_resource
+		where FIND_IN_SET(id,getChildList('t_dcs_resource',#{0}))
+		and id != #{0} order by created_date desc
+	</select>
+	
+	<select id="listCountByPage" parameterType="java.util.Map" resultType="java.lang.Long">
+		select count(id) from t_dcs_resource where 1 = 1
+		<if test='id != "-1"'>
+			and FIND_IN_SET(id,getChildList('t_dcs_resource',#{id}))
+		</if>
+		<if test="null != searchVal and '' != searchVal">
+			and concat(name,',',ifnull(path,''),',',ifnull(description,'')) like concat('%',#{searchVal},'%')
+		</if>
+	</select>
+	
+	<select id="listByPage" parameterType="java.util.Map" resultType="java.util.LinkedHashMap">
+		select * from t_dcs_resource where 1 = 1
+		<if test='id != "-1"'>
+			and FIND_IN_SET(id,getChildList('t_dcs_resource',#{id}))
+		</if>
+		<if test="null != searchVal and '' != searchVal">
+			and concat(name,',',ifnull(path,''),',',ifnull(description,'')) like concat('%',#{searchVal},'%')
+		</if>
+		order by created_date limit #{start},#{length}
+	</select>
+	
+	
+	<insert id="add" parameterType="com.cberp.control.entity.Resource">
+		<selectKey resultType="java.lang.String" order="BEFORE" keyProperty="id">  
+	       SELECT (replace(uuid(),'-','')) as id FROM DUAL
+	    </selectKey>
+		INSERT INTO t_dcs_resource(id, created_date, creator, description, name, order_num, `path`, resource_type, parent_id)
+		VALUES(#{id}, #{created_date}, #{creator}, #{description}, #{name}, #{order_num}, #{path}, #{resource_type}, #{parent_id});
+	</insert>
+	
+	<update id="edit" parameterType="com.cberp.control.entity.Resource">
+		UPDATE t_dcs_resource
+		SET description=#{description}, name=#{name}, order_num=#{order_num}, `path`=#{path}
+		WHERE id=#{id}
+	</update>
+	
+	<delete id="deleteById">
+		delete from t_dcs_resource
+		where id = #{0}
+	</delete>
+	
+	<select id="findById" resultType="com.cberp.control.entity.Resource">
+		select * from t_dcs_resource where id = #{0}
+	</select>
+	
+	
+</mapper>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cberp.control.mapper.LogMapper">
+
+	<insert id="addLog" parameterType="com.cberp.control.entity.Log">
+		INSERT INTO t_dcs_log(pid, log_type,log_type_val, log_content, log_creator, log_date, log_ip, log_filed1, log_filed2, log_filed3)
+		VALUES((select replace(uuid(),'-','')), #{log_type},#{log_type_val}, #{log_content}, #{log_creator}, now(), #{log_ip}, #{log_filed1},#{log_filed2}, #{log_filed3})
+	</insert>
+	
+	<select id="findById" resultType="java.util.Map">
+		select * from t_dcs_log where pid = #{0}
+	</select>
+	
+	<select id="listCountByPage" resultType="java.lang.Long">
+		select count(pid) from t_dcs_log where DATE_FORMAT(log_date, '%Y-%m-%d') between #{startDate} and #{endDate}
+		<if test="null != searchVal and '' != searchVal">
+			and log_type_val like concat('%',#{searchVal},'%')
+		</if>
+	</select>
+	
+	<select id="listByPage" resultType="java.util.Map">
+		select pid,log_type,log_type_val,log_content,log_creator,DATE_FORMAT(log_date, '%Y-%m-%d %H:%i:%S') as log_date,log_ip from t_dcs_log
+		where DATE_FORMAT(log_date, '%Y-%m-%d') between #{startDate} and #{endDate}
+		<if test="null != searchVal and '' != searchVal">
+			and log_type_val like concat('%',#{searchVal},'%')
+		</if>
+		order by log_date desc
+		limit #{start},#{length}
+	</select>
+</mapper>

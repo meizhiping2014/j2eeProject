@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cberp.control.mapper.OrganizationMapper">
+
+	<select id="findById" resultType="com.cberp.control.entity.Organization">
+		select * from t_dcs_organization where id = #{0}
+	</select>
+	
+	<select id="findAll" resultType="com.cberp.control.entity.Organization">
+		select * from t_dcs_organization order by created_date
+	</select>
+	
+	<select id="findAllParentOrg" resultType="com.cberp.control.entity.Organization">
+		select * from t_dcs_organization where parent_id is null order by created_date
+	</select>
+	
+	<select id="findByParentId" resultType="com.cberp.control.entity.Organization">
+		select * from t_dcs_organization where parent_id  = #{0} order by created_date
+	</select>
+	
+	<select id="findSelfAndChild" resultType="com.cberp.control.entity.Organization">
+		select * from t_dcs_organization
+		where FIND_IN_SET(id,getChildList('t_dcs_organization',#{0}))
+		order by created_date desc
+	</select>
+	
+	<select id="findAllChild" resultType="com.cberp.control.entity.Organization">
+		select * from t_dcs_organization
+		where FIND_IN_SET(id,getChildList('t_dcs_organization',#{0})) and id != #{0}
+		order by created_date desc
+	</select>
+	
+	<select id="countAll" resultType="java.lang.Long">
+		select count(id) from t_dcs_organization 
+	</select>
+	
+	<select id="countByParentId" resultType="java.lang.Long">
+		select count(id) from t_dcs_organization 
+		where parent_id = #{0}
+	</select>
+	
+	<select id="listCountByPage" parameterType="java.util.Map" resultType="java.lang.Long">
+		select count(id) from t_dcs_organization where 1 = 1
+		<if test='id != "-1"'>
+			and FIND_IN_SET(id,getChildList('t_dcs_organization',#{id}))
+		</if>
+		<if test="null != searchVal and '' != searchVal">
+			and concat(code,',',name,',',address) like concat('%',#{searchVal},'%')
+		</if>
+	</select>
+	
+	<select id="listByPage" parameterType="java.util.Map" resultType="java.util.LinkedHashMap">
+		select * from t_dcs_organization where 1 = 1
+		<if test='id != "-1"'>
+			and FIND_IN_SET(id,getChildList('t_dcs_organization',#{id}))
+		</if>
+		<if test="null != searchVal and '' != searchVal">
+			and concat(code,',',name,',',address) like concat('%',#{searchVal},'%')
+		</if>
+		order by created_date limit #{start},#{length}
+	</select>
+	
+	<select id="findSeqNumber" resultType="java.lang.Long">
+		select f_nextval('randomcode')
+	</select>
+	
+	<insert id="addOrg" parameterType="com.cberp.control.entity.Organization">
+		INSERT INTO t_dcs_organization(
+		id, address, code, created_date, creator, name, order_num, parent_id
+		)
+		VALUES
+		(replace(uuid(),'-',''), #{address}, #{code}, #{created_date}, #{creator}, #{name}, #{order_num}, #{parent_id})
+		
+	</insert>
+	
+	<update id="editOrg" parameterType="com.cberp.control.entity.Organization">
+		UPDATE t_dcs_organization
+		SET address=#{address}, name=#{name}
+		WHERE id=#{id}
+	</update>
+	
+	<delete id="delOrgByParentId">
+		delete from t_dcs_organization
+		where parent_id = #{0}
+	</delete>
+	
+	<delete id="delOrgById">
+		delete from t_dcs_organization
+		where id = #{0}
+	</delete>
+	
+
+</mapper>

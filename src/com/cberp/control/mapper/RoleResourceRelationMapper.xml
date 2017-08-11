@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cberp.control.mapper.RoleResourceRelationMapper">
+
+
+	<select id="findByRoleId" resultType="com.cberp.control.entity.RoleResourceRelation">
+		select * from t_dcs_role_resource_relation where role_id = #{_parameter}
+	</select>
+	
+	<insert id="save">
+		INSERT INTO t_dcs_role_resource_relation(id, authorize_type, resource_id, role_id, role_resource_temp_id)
+		VALUES((replace(uuid(),'-','')), #{authorize_type}, #{resource_id},#{role_id}, #{role_resource_temp_id})
+	</insert>
+	
+	<delete id="deleteByRoleId">
+		delete from t_dcs_role_resource_relation where role_id = #{0}
+	</delete>
+	
+	<delete id="deleteByResourceId">
+		delete from t_dcs_role_resource_relation where resource_id = #{0}
+	</delete>
+	
+	
+</mapper>

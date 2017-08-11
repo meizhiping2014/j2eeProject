@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cberp.control.mapper.MainMapper">
+
+	<select id="todayData" resultType="java.util.LinkedHashMap">
+		
+		select count(pid) as val from t_user_info a
+		inner join t_dcs_user u on u.organization_id = a.referrer_user_id
+		where 1 = 1
+		<if test="null != today and '' != today">
+			and DATE_FORMAT(a.create_time, '%Y-%m-%d') = #{today}
+		</if>
+		<if test="null != account and '' != account">
+			and u.account = #{account}
+		</if>
+		union all
+		select count(b.pid) from t_recharge_detail b
+		inner join t_user_info t on t.pid = b.userid
+		inner join t_dcs_user u on u.organization_id = t.referrer_user_id
+		where b.`result` = 1 
+		<if test="null != today and '' != today">
+			and DATE_FORMAT(b.rechargetime,'%Y-%m-%d') = #{today}
+		</if>
+		<if test="null != account and '' != account">
+			and u.account = #{account}
+		</if>
+		union all
+		select count(c.pid) from t_recharge_detail c
+		inner join t_user_info t on t.pid = c.userid
+		inner join t_dcs_user u on u.organization_id = t.referrer_user_id
+		where 1 = 1
+		<if test="null != today and '' != today">
+			and DATE_FORMAT(c.rechargetime,'%Y-%m-%d') =  #{today}
+		</if>
+		<if test="null != account and '' != account">
+			and u.account = #{account}
+		</if>
+		union all
+		select ifnull(sum(d.rechargemoney),0) from t_recharge_detail d
+		inner join t_user_info t on t.pid = d.userid
+		inner join t_dcs_user u on u.organization_id = t.referrer_user_id
+		where 1 = 1
+		<if test="null != today and '' != today">
+			and DATE_FORMAT(d.rechargetime,'%Y-%m-%d') = #{today}
+		</if>
+		<if test="null != account and '' != account">
+			and u.account = #{account}
+		</if>
+		
+	</select>
+	
+</mapper>
